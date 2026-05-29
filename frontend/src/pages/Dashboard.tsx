@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { fetchWithAuth } from '../utils/api';
-import { 
-  Users, 
-  Compass, 
-  TrendingUp, 
-  AlertCircle, 
-  Activity, 
+import { useEffect, useState } from 'react';
+import { fetchWithAuth, getCurrentUser } from '../utils/api';
+import {
+  Users,
+  Compass,
+  TrendingUp,
+  AlertCircle,
+  Activity,
   Star,
   Hotel,
-  PlaneTakeoff
+  PlaneTakeoff,
+  ClipboardList,
+  CheckCircle,
+  Clock,
+  XCircle,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -42,10 +46,21 @@ interface RecentActivity {
   };
 }
 
+interface BookingStatusStat {
+  bookingStatus?: string;
+  status?: string;
+  count?: number | string;
+  _count?: number | string;
+}
+
 export default function Dashboard() {
+  const currentUser = getCurrentUser();
+  const isAdmin = currentUser?.role === 'ADMIN';
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [bookingStatusStats, setBookingStatusStats] = useState<BookingStatusStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -53,21 +68,42 @@ export default function Dashboard() {
     async function loadDashboardData() {
       try {
         setLoading(true);
-        
-        // Fetch stats & lists concurrently
-        const [overviewRes, topCustomersRes, recentRes] = await Promise.all([
-          fetchWithAuth('/dashboard/overview'),
-          fetchWithAuth('/dashboard/top-customers'),
-          fetchWithAuth('/dashboard/recent-activity')
-        ]);
+        setError('');
 
-        const statsData = await overviewRes.json();
-        const topCustomersData = await topCustomersRes.json();
-        const recentData = await recentRes.json();
+        if (isAdmin) {
+          const [overviewRes, topCustomersRes, recentRes] = await Promise.all([
+            fetchWithAuth('/dashboard/overview'),
+            fetchWithAuth('/dashboard/top-customers'),
+            fetchWithAuth('/dashboard/recent-activity'),
+          ]);
 
-        setStats(statsData);
-        setTopCustomers(topCustomersData);
-        setRecentActivities(recentData);
+          if (!overviewRes.ok || !topCustomersRes.ok || !recentRes.ok) {
+            throw new Error('Failed to fetch admin dashboard data');
+          }
+
+          const statsData = await overviewRes.json();
+          const topCustomersData = await topCustomersRes.json();
+          const recentData = await recentRes.json();
+
+          setStats(statsData);
+          setTopCustomers(Array.isArray(topCustomersData) ? topCustomersData : []);
+          setRecentActivities(Array.isArray(recentData) ? recentData : []);
+        } else {
+          const [statusRes, recentRes] = await Promise.all([
+            fetchWithAuth('/dashboard/bookings-by-status'),
+            fetchWithAuth('/dashboard/recent-activity'),
+          ]);
+
+          if (!statusRes.ok || !recentRes.ok) {
+            throw new Error('Failed to fetch operational dashboard data');
+          }
+
+          const statusData = await statusRes.json();
+          const recentData = await recentRes.json();
+
+          setBookingStatusStats(Array.isArray(statusData) ? statusData : []);
+          setRecentActivities(Array.isArray(recentData) ? recentData : []);
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch dashboard data');
       } finally {
@@ -76,7 +112,7 @@ export default function Dashboard() {
     }
 
     loadDashboardData();
-  }, []);
+  }, [isAdmin]);
 
   const formatCurrency = (val: string | number | undefined) => {
     if (val === undefined) return '0.000 TND';
@@ -90,11 +126,26 @@ export default function Dashboard() {
     return 'badge-primary';
   };
 
+  const getStatusCount = (statusName: string) => {
+    const found = bookingStatusStats.find((item) => {
+      const status = item.bookingStatus || item.status || '';
+      return status.toUpperCase() === statusName.toUpperCase();
+    });
+
+    return Number(found?.count ?? found?._count ?? 0);
+  };
+
+  const totalOperationalBookings = bookingStatusStats.reduce((total, item) => {
+    return total + Number(item.count ?? item._count ?? 0);
+  }, 0);
+
   if (loading) {
     return (
       <div className="center-flex" style={{ height: '100%' }}>
         <div className="loading-spinner" />
-        <p style={{ color: 'var(--text-secondary)' }}>Analyzing business metrics...</p>
+        <p style={{ color: 'var(--text-secondary)' }}>
+          Loading dashboard data...
+        </p>
       </div>
     );
   }
@@ -112,152 +163,291 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <div>
-          <h2 className="page-title">Executive Dashboard</h2>
-          <p className="page-subtitle">Real-time financial analytics and operations tracker</p>
+          <h2 className="page-title">
+            {isAdmin ? 'Executive Dashboard' : 'Operational Dashboard'}
+          </h2>
+          <p className="page-subtitle">
+            {isAdmin
+              ? 'Financial analytics and agency performance overview'
+              : 'Daily booking operations and recent activity'}
+          </p>
         </div>
       </div>
 
-      {/* Main stats blocks */}
-      <div className="grid-4">
-        <div className="glass-panel stat-card">
-          <div>
-            <p className="stat-label">Total Customers</p>
-            <h3 className="stat-value">{stats?.totalCustomers || 0}</h3>
-          </div>
-          <div className="stat-icon">
-            <Users size={22} />
-          </div>
-        </div>
-
-        <div className="glass-panel stat-card">
-          <div>
-            <p className="stat-label">Total Bookings</p>
-            <h3 className="stat-value">{stats?.totalBookings || 0}</h3>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <Hotel size={12} /> {stats?.hotelBookingsCount || 0}
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <PlaneTakeoff size={12} /> {stats?.flightBookingsCount || 0}
-              </span>
+      {isAdmin ? (
+        <>
+          <div className="grid-4">
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Total Customers</p>
+                <h3 className="stat-value">{stats?.totalCustomers || 0}</h3>
+              </div>
+              <div className="stat-icon">
+                <Users size={22} />
+              </div>
             </div>
-          </div>
-          <div className="stat-icon">
-            <Compass size={22} />
-          </div>
-        </div>
 
-        <div className="glass-panel stat-card">
-          <div>
-            <p className="stat-label">Gross Revenue</p>
-            <h3 className="stat-value" style={{ fontSize: '1.45rem' }}>{formatCurrency(stats?.totalRevenue)}</h3>
-          </div>
-          <div className="stat-icon" style={{ color: 'var(--secondary)' }}>
-            <TrendingUp size={22} />
-          </div>
-        </div>
-
-        <div className="glass-panel stat-card">
-          <div>
-            <p className="stat-label">Unpaid Balance</p>
-            <h3 className="stat-value" style={{ fontSize: '1.45rem', color: 'var(--danger)' }}>
-              {formatCurrency(stats?.totalUnpaid)}
-            </h3>
-          </div>
-          <div className="stat-icon" style={{ color: 'var(--danger)' }}>
-            <AlertCircle size={22} />
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-row">
-        {/* Recent System Activity Logs */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <Activity size={20} color="var(--primary)" />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>System Logs & Activity</h3>
-          </div>
-          
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>Actor</th>
-                  <th>Audit Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentActivities.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>
-                      No activity registered yet
-                    </td>
-                  </tr>
-                ) : (
-                  recentActivities.map((act) => (
-                    <tr key={act.id}>
-                      <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {new Date(act.createdAt).toLocaleString()}
-                      </td>
-                      <td>
-                        <span className={`badge ${getActionColor(act.action)}`}>
-                          {act.action.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{act.user?.fullName || 'System'}</td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{act.description}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Top customers block */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <Star size={20} color="var(--warning)" />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Top Customers</h3>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {topCustomers.length === 0 ? (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>
-                No customer spendings found
-              </p>
-            ) : (
-              topCustomers.map((cust) => (
-                <div 
-                  key={cust.customerId} 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    paddingBottom: '12px',
-                    borderBottom: '1px solid var(--border-glass)'
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Total Bookings</p>
+                <h3 className="stat-value">{stats?.totalBookings || 0}</h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '10px',
+                    marginTop: '6px',
+                    fontSize: '0.75rem',
+                    color: 'var(--text-secondary)',
                   }}
                 >
-                  <div>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-                      {cust.firstName} {cust.lastName}
-                    </h4>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      {cust.bookingCount} bookings recorded
-                    </p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--secondary)' }}>
-                      {formatCurrency(cust.totalSpent)}
-                    </p>
-                  </div>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <Hotel size={12} /> {stats?.hotelBookingsCount || 0}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <PlaneTakeoff size={12} /> {stats?.flightBookingsCount || 0}
+                  </span>
                 </div>
+              </div>
+              <div className="stat-icon">
+                <Compass size={22} />
+              </div>
+            </div>
+
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Gross Revenue</p>
+                <h3 className="stat-value" style={{ fontSize: '1.45rem' }}>
+                  {formatCurrency(stats?.totalRevenue)}
+                </h3>
+              </div>
+              <div className="stat-icon" style={{ color: 'var(--secondary)' }}>
+                <TrendingUp size={22} />
+              </div>
+            </div>
+
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Unpaid Balance</p>
+                <h3
+                  className="stat-value"
+                  style={{ fontSize: '1.45rem', color: 'var(--danger)' }}
+                >
+                  {formatCurrency(stats?.totalUnpaid)}
+                </h3>
+              </div>
+              <div className="stat-icon" style={{ color: 'var(--danger)' }}>
+                <AlertCircle size={22} />
+              </div>
+            </div>
+          </div>
+
+          <div className="dashboard-row">
+            <RecentActivityTable
+              recentActivities={recentActivities}
+              getActionColor={getActionColor}
+            />
+
+            <div className="glass-panel" style={{ padding: '24px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '20px',
+                }}
+              >
+                <Star size={20} color="var(--warning)" />
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
+                  Top Customers
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {topCustomers.length === 0 ? (
+                  <p
+                    style={{
+                      color: 'var(--text-secondary)',
+                      fontSize: '0.9rem',
+                      textAlign: 'center',
+                      padding: '20px',
+                    }}
+                  >
+                    No customer spending found
+                  </p>
+                ) : (
+                  topCustomers.map((cust) => (
+                    <div
+                      key={cust.customerId}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingBottom: '12px',
+                        borderBottom: '1px solid var(--border-glass)',
+                      }}
+                    >
+                      <div>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                          {cust.firstName} {cust.lastName}
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          {cust.bookingCount} bookings recorded
+                        </p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p
+                          style={{
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                            color: 'var(--secondary)',
+                          }}
+                        >
+                          {formatCurrency(cust.totalSpent)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid-4">
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Total Operational Bookings</p>
+                <h3 className="stat-value">{totalOperationalBookings}</h3>
+              </div>
+              <div className="stat-icon">
+                <ClipboardList size={22} />
+              </div>
+            </div>
+
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Pending Bookings</p>
+                <h3 className="stat-value">{getStatusCount('PENDING')}</h3>
+              </div>
+              <div className="stat-icon" style={{ color: 'var(--warning)' }}>
+                <Clock size={22} />
+              </div>
+            </div>
+
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Confirmed Bookings</p>
+                <h3 className="stat-value">{getStatusCount('CONFIRMED')}</h3>
+              </div>
+              <div className="stat-icon" style={{ color: 'var(--success)' }}>
+                <CheckCircle size={22} />
+              </div>
+            </div>
+
+            <div className="glass-panel stat-card">
+              <div>
+                <p className="stat-label">Cancelled Bookings</p>
+                <h3 className="stat-value">{getStatusCount('CANCELLED')}</h3>
+              </div>
+              <div className="stat-icon" style={{ color: 'var(--danger)' }}>
+                <XCircle size={22} />
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ padding: '18px', marginBottom: '24px' }}>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
+              You are using an operational account. Financial information such as
+              revenue, unpaid balance, and top customers by spending is reserved
+              for the chef d’agence.
+            </p>
+          </div>
+
+          <div className="dashboard-row">
+            <RecentActivityTable
+              recentActivities={recentActivities}
+              getActionColor={getActionColor}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function RecentActivityTable({
+  recentActivities,
+  getActionColor,
+}: {
+  recentActivities: RecentActivity[];
+  getActionColor: (action: string) => string;
+}) {
+  return (
+    <div className="glass-panel" style={{ padding: '24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginBottom: '20px',
+        }}
+      >
+        <Activity size={20} color="var(--primary)" />
+        <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
+          System Logs & Activity
+        </h3>
+      </div>
+
+      <div className="table-container">
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Actor</th>
+              <th>Audit Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentActivities.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--text-secondary)',
+                    padding: '20px',
+                  }}
+                >
+                  No activity registered yet
+                </td>
+              </tr>
+            ) : (
+              recentActivities.map((act) => (
+                <tr key={act.id}>
+                  <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    {new Date(act.createdAt).toLocaleString()}
+                  </td>
+                  <td>
+                    <span className={`badge ${getActionColor(act.action)}`}>
+                      {act.action.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 600 }}>{act.user?.fullName || 'System'}</td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    {act.description}
+                  </td>
+                </tr>
               ))
             )}
-          </div>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   );

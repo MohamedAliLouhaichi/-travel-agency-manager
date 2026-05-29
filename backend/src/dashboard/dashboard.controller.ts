@@ -6,20 +6,27 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { DashboardService } from './dashboard.service';
 
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DashboardController {
-  constructor(private dashboardService: DashboardService) {}
+  constructor(private readonly dashboardService: DashboardService) {}
 
   /**
    * GET /dashboard/overview
-   * ADMIN only – high-level stats for the entire agency.
+   * ADMIN only — high-level financial and business stats for the entire agency.
+   *
+   * Contains:
+   * - total customers
+   * - total bookings
+   * - total revenue
+   * - total paid
+   * - total remaining
    */
   @Get('overview')
   @Roles(UserRole.ADMIN)
@@ -29,7 +36,9 @@ export class DashboardController {
 
   /**
    * GET /dashboard/revenue?year=2026
-   * ADMIN only – monthly revenue breakdown for the given year.
+   * ADMIN only — monthly revenue breakdown for the given year.
+   *
+   * Contains chiffre d'affaires / revenue data.
    */
   @Get('revenue')
   @Roles(UserRole.ADMIN)
@@ -41,28 +50,30 @@ export class DashboardController {
   }
 
   /**
-   * GET /dashboard/bookings-by-status
-   * Any authenticated user.
-   */
-  @Get('bookings-by-status')
-  getBookingsByStatus() {
-    return this.dashboardService.getBookingsByStatus();
-  }
-
-  /**
    * GET /dashboard/payment-summary
-   * Any authenticated user.
+   * ADMIN only — financial payment summary.
+   *
+   * Contains:
+   * - total paid
+   * - total unpaid
+   * - total remaining
+   * - payment-related financial data
    */
   @Get('payment-summary')
+  @Roles(UserRole.ADMIN)
   getPaymentSummary() {
     return this.dashboardService.getPaymentSummary();
   }
 
   /**
    * GET /dashboard/top-customers?limit=10
-   * Any authenticated user.
+   * ADMIN only — top customers based on spending/revenue.
+   *
+   * This is financial/commercial information, so it must not be visible
+   * to the secretary or normal employees.
    */
   @Get('top-customers')
+  @Roles(UserRole.ADMIN)
   getTopCustomers(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
     limit: number,
@@ -71,8 +82,21 @@ export class DashboardController {
   }
 
   /**
+   * GET /dashboard/bookings-by-status
+   * ADMIN + SECRETARY — operational booking statistics.
+   *
+   * This does not expose chiffre d'affaires.
+   */
+  @Get('bookings-by-status')
+  getBookingsByStatus() {
+    return this.dashboardService.getBookingsByStatus();
+  }
+
+  /**
    * GET /dashboard/recent-activity?limit=20
-   * Any authenticated user.
+   * ADMIN + SECRETARY — recent operational activity.
+   *
+   * This should not expose revenue or payment totals.
    */
   @Get('recent-activity')
   getRecentActivity(
