@@ -1,0 +1,134 @@
+import { useState, useEffect } from 'react';
+import { HashRouter, Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
+import { getAuthToken, getCurrentUser, logout } from './utils/api';
+import {
+  LayoutDashboard,
+  Users,
+  Compass,
+  FileText,
+  Activity,
+  Upload,
+  Settings as SettingsIcon,
+  LogOut,
+} from 'lucide-react';
+
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import Bookings from './pages/Bookings';
+import Invoices from './pages/Invoices';
+import ActivityLogs from './pages/ActivityLogs';
+import ImportsPage from './pages/Imports';
+import SettingsPage from './pages/Settings';
+
+const NAV_ITEMS = [
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/customers', icon: Users, label: 'Customers' },
+  { to: '/bookings', icon: Compass, label: 'Bookings' },
+  { to: '/invoices', icon: FileText, label: 'Invoices' },
+  { to: '/imports', icon: Upload, label: 'Imports' },
+  { to: '/activity-logs', icon: Activity, label: 'Activity Logs' },
+  { to: '/settings', icon: SettingsIcon, label: 'Settings' },
+];
+
+function AuthenticatedLayout() {
+  const navigate = useNavigate();
+  const user = getCurrentUser();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="app-container">
+      <aside className="sidebar">
+        <div className="sidebar-logo">GLOBETROTTER</div>
+
+        <ul className="sidebar-menu">
+          {NAV_ITEMS.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `sidebar-link${isActive ? ' active' : ''}`
+                }
+              >
+                <item.icon size={18} />
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="sidebar-user">
+          <div className="user-info">
+            <span className="user-name">{user?.fullName || 'User'}</span>
+            <span className="user-role">{user?.role || 'Agent'}</span>
+          </div>
+          <button className="btn btn-outline" onClick={handleLogout} style={{ width: '100%' }}>
+            <LogOut size={16} /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/imports" element={<ImportsPage />} />
+          <Route path="/activity-logs" element={<ActivityLogs />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+function AppRoutes() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getAuthToken());
+
+  useEffect(() => {
+    const checkAuth = () => setIsAuthenticated(!!getAuthToken());
+
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Login onLoginSuccess={() => setIsAuthenticated(true)} />
+          )
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <AuthenticatedLayout />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <HashRouter>
+      <AppRoutes />
+    </HashRouter>
+  );
+}
