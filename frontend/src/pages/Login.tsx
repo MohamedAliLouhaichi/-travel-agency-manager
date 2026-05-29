@@ -45,25 +45,43 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div className="login-container">
       <div className="login-card glass-panel">
         <div className="login-header">
-          <h1 className="sidebar-logo">GLOBETROTTER</h1>
-          <h2 className="login-title">Travel Agency Portal</h2>
-          <p className="login-subtitle">Sign in to manage agency operations</p>
-        </div>
+          <h1 className="sidebar-logo">GLOBETROTTER <img
+  src="/branding/riadh-voyages-logo.png"
+  alt="Riadh Voyages"
+  style={{
+    width: 140,
+    height: 140,
+    objectFit: 'contain',
+    margin: '0 auto 16px',
+    display: 'block',
+  }}
+/></h1>
+          <h2 className="login-title">Travel Agency Portal <img
+  src="/branding/riadh-voyages-logo.png"
+  alt="Riadh Voyages"
+  style={{
+    width: 140,
+    height: 140,
+    objectFit: 'contain',
+    margin: '0 auto 16px',
+    display: 'block',
+  }}
+/><img
+  src="/branding/riadh-voyages-logo.png"
+  alt="Riadh Voyages"
+  style={{
+    width: 150,
+    height: 150,
+    objectFit: 'contain',
+    margin: '0 auto 18px',
+    display: 'block',
+  }}
+/>
 
-        {error && <div className="alert alert-danger">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              className="form-input"
-              placeholder="e.g. admin@travelagency.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+<h2 className="login-title">Riadh Voyages</h2>
+<p className="login-subtitle">
+  Internal Travel Agency Management System
+</p>
           </div>
 
           <div className="form-group">

@@ -1,43 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  
-  /* Color Palette (Sleek Dark Mode / Glassmorphism) */
-  --bg-app: #0b0c10;
-  --bg-gradient: linear-gradient(135deg, #0b0c10 0%, #171c28 100%);
-  --bg-panel: rgba(30, 37, 51, 0.55);
-  --bg-panel-hover: rgba(38, 47, 65, 0.7);
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-glass-active: rgba(255, 255, 255, 0.18);
-  
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  
-  --secondary: #10b981;
-  --secondary-hover: #059669;
-  --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
-  
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-full: 9999px;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --primary: #e52329;
+  --primary-dark: #b91c1c;
+  --primary-light: #fee2e2;
+
+  --secondary: #3f3f3f;
+  --secondary-dark: #2b2b2b;
+  --secondary-light: #6b7280;
+
+  --background: #f4f4f5;
+  --surface: #ffffff;
+  --surface-soft: #fafafa;
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-inverse: #ffffff;
+
+  --border: #e5e7eb;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #f59e0b;
+
+  color: var(--text-primary);
+  background: var(--background);
 }
 
 * {
