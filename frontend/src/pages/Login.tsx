@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { API_BASE_URL } from '../utils/api';
 import { LogIn } from 'lucide-react';
 
@@ -12,7 +12,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -32,6 +32,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
       localStorage.setItem('auth_token', data.accessToken);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+
       onLoginSuccess();
       window.location.hash = '#/';
     } catch (err: any) {
@@ -45,47 +46,47 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div className="login-container">
       <div className="login-card glass-panel">
         <div className="login-header">
-          <h1 className="sidebar-logo">GLOBETROTTER <img
-  src="/branding/riadh-voyages-logo.png"
-  alt="Riadh Voyages"
-  style={{
-    width: 140,
-    height: 140,
-    objectFit: 'contain',
-    margin: '0 auto 16px',
-    display: 'block',
-  }}
-/></h1>
-          <h2 className="login-title">Travel Agency Portal <img
-  src="/branding/riadh-voyages-logo.png"
-  alt="Riadh Voyages"
-  style={{
-    width: 140,
-    height: 140,
-    objectFit: 'contain',
-    margin: '0 auto 16px',
-    display: 'block',
-  }}
-/><img
-  src="/branding/riadh-voyages-logo.png"
-  alt="Riadh Voyages"
-  style={{
-    width: 150,
-    height: 150,
-    objectFit: 'contain',
-    margin: '0 auto 18px',
-    display: 'block',
-  }}
-/>
+          <img
+            src="/branding/riadh-voyages-logo.png"
+            alt="Riadh Voyages"
+            style={{
+              width: 150,
+              height: 150,
+              objectFit: 'contain',
+              margin: '0 auto 18px',
+              display: 'block',
+            }}
+          />
 
-<h2 className="login-title">Riadh Voyages</h2>
-<p className="login-subtitle">
-  Internal Travel Agency Management System
-</p>
+          <h1 className="sidebar-logo">RIADH VOYAGES</h1>
+          <h2 className="login-title">Agency Management Portal</h2>
+          <p className="login-subtitle">
+            Internal Travel Agency Management System
+          </p>
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              className="form-input"
+              placeholder="e.g. admin@travelagency.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
+            <label className="form-label" htmlFor="password">
+              Password
+            </label>
             <input
               id="password"
               type="password"
