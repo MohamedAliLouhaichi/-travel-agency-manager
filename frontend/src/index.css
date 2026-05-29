@@ -647,3 +647,182 @@ body {
 .drag-drop-zone:hover .drag-drop-icon {
   color: var(--primary);
 }
+/* =========================================================
+   Riadh Voyages — High Contrast UI Fix
+   This block improves readability across the whole app.
+   ========================================================= */
+
+   :root {
+    --primary: #d71920;
+    --primary-dark: #a51218;
+    --primary-light: #fff1f2;
+  
+    --secondary: #2b2b2b;
+    --secondary-dark: #171717;
+    --secondary-light: #4b5563;
+  
+    --background: #f5f5f5;
+    --surface: #ffffff;
+    --surface-soft: #fafafa;
+  
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-muted: #4b5563;
+    --text-inverse: #ffffff;
+  
+    --border: #d1d5db;
+    --border-glass: rgba(17, 24, 39, 0.14);
+  
+    --danger: #dc2626;
+    --success: #15803d;
+    --warning: #b45309;
+  }
+  
+  body {
+    background: var(--background);
+    color: var(--text-primary);
+  }
+  
+  /* Panels and cards */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 12px 35px rgba(17, 24, 39, 0.08) !important;
+  }
+  
+  /* Titles and subtitles */
+  .page-title,
+  .login-title,
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--text-primary) !important;
+  }
+  
+  .page-subtitle,
+  .login-subtitle,
+  .stat-label,
+  p {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Stat cards */
+  .stat-value {
+    color: var(--text-primary) !important;
+  }
+  
+  .stat-icon {
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+  }
+  
+  /* Forms */
+  .form-label {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+  }
+  
+  .form-input,
+  .form-select,
+  input,
+  select,
+  textarea {
+    background: #ffffff !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+  }
+  
+  .form-input::placeholder,
+  input::placeholder,
+  textarea::placeholder {
+    color: #6b7280 !important;
+  }
+  
+  /* Tables */
+  .custom-table {
+    color: var(--text-primary) !important;
+  }
+  
+  .custom-table th {
+    color: var(--text-primary) !important;
+    background: #f3f4f6 !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  
+  .custom-table td {
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--primary-dark) !important;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-dark) !important;
+  }
+  
+  /* Badges */
+  .badge {
+    font-weight: 700;
+  }
+  
+  .badge-primary {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+  }
+  
+  .badge-success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+  }
+  
+  .badge-warning {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+  }
+  
+  .badge-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+  }
+  
+  /* Alerts */
+  .alert-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+  }
+  
+  .alert-success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
+  }
+  
+  /* Sidebar / navigation if present */
+  .sidebar,
+  .app-sidebar {
+    background: #ffffff !important;
+    color: var(--text-primary) !important;
+    border-right: 1px solid var(--border) !important;
+  }
+  
+  .sidebar a,
+  .app-sidebar a,
+  .nav-link {
+    color: var(--text-primary) !important;
+  }
+  
+  .sidebar a.active,
+  .app-sidebar a.active,
+  .nav-link.active {
+    background: var(--primary-light) !important;
+    color: var(--primary-dark) !important;
+    font-weight: 700;
+  }
