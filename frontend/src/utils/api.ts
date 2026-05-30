@@ -1,5 +1,7 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://riadh-voyages-api.onrender.com';
+export const AUTH_CHANGED_EVENT = 'auth-changed';
+
 export function getAuthToken(): string | null {
   return localStorage.getItem('auth_token');
 }
@@ -17,7 +19,7 @@ export function getCurrentUser() {
 export function logout() {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('auth_user');
-  window.location.href = '#/login';
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {

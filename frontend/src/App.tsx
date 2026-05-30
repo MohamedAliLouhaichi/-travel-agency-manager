@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
-import { getAuthToken, getCurrentUser, logout } from './utils/api';
+import { AUTH_CHANGED_EVENT, getAuthToken, getCurrentUser, logout } from './utils/api';
 import {
   LayoutDashboard,
   Users,
@@ -44,7 +44,7 @@ function AuthenticatedLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -133,7 +133,11 @@ function AppRoutes() {
     const checkAuth = () => setIsAuthenticated(!!getAuthToken());
 
     window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    window.addEventListener(AUTH_CHANGED_EVENT, checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener(AUTH_CHANGED_EVENT, checkAuth);
+    };
   }, []);
 
   return (
