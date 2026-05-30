@@ -52,7 +52,7 @@ async function main() {
 
   // 3. Create Default Settings
   const defaultSettings = [
-    { key: 'agency_name', value: 'GlobeTrotter Travel' },
+    { key: 'agency_name', value: 'Riadh Voyages' },
     { key: 'agency_address', value: 'Avenue Habib Bourguiba, Tunis, Tunisie' },
     { key: 'agency_phone', value: '+216 71 123 456' },
     { key: 'agency_email', value: 'contact@globetrotter.tn' },

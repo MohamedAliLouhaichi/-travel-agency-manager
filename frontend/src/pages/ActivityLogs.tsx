@@ -43,8 +43,8 @@ export default function ActivityLogs() {
   async function loadTypes() {
     try {
       const [actionsRes, entitiesRes] = await Promise.all([
-        fetchWithAuth('/activity-logs/types/actions'),
-        fetchWithAuth('/activity-logs/types/entities')
+        fetchWithAuth('/activity-logs/action-types'),
+        fetchWithAuth('/activity-logs/entity-types')
       ]);
 
       if (actionsRes.ok && entitiesRes.ok) {

@@ -263,7 +263,7 @@ export default function Bookings() {
     try {
       const res = await fetchWithAuth(`/bookings/${selectedBooking.id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ bookingStatus: newStatus }),
+        body: JSON.stringify({ status: newStatus }),
       });
 
       if (!res.ok) {

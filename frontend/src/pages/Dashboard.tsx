@@ -18,21 +18,26 @@ import {
 interface DashboardStats {
   totalCustomers: number;
   totalBookings: number;
-  hotelBookingsCount: number;
-  flightBookingsCount: number;
+  bookingsByType: {
+    HOTEL: number;
+    FLIGHT: number;
+  };
   totalRevenue: string | number;
   totalPaid: string | number;
   totalUnpaid: string | number;
 }
 
 interface TopCustomer {
-  customerId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  bookingCount: number;
-  totalSpent: string | number;
+  customer: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  };
+  totalBookings: number;
+  totalValue: string | number;
+  totalPaid: string | number;
 }
 
 interface RecentActivity {
@@ -46,12 +51,7 @@ interface RecentActivity {
   };
 }
 
-interface BookingStatusStat {
-  bookingStatus?: string;
-  status?: string;
-  count?: number | string;
-  _count?: number | string;
-}
+type BookingStatusStats = Record<string, number>;
 
 export default function Dashboard() {
   const currentUser = getCurrentUser();
@@ -60,7 +60,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [bookingStatusStats, setBookingStatusStats] = useState<BookingStatusStat[]>([]);
+  const [bookingStatusStats, setBookingStatusStats] = useState<BookingStatusStats>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -101,7 +101,11 @@ export default function Dashboard() {
           const statusData = await statusRes.json();
           const recentData = await recentRes.json();
 
-          setBookingStatusStats(Array.isArray(statusData) ? statusData : []);
+          setBookingStatusStats(
+            statusData && typeof statusData === 'object' && !Array.isArray(statusData)
+              ? statusData
+              : {},
+          );
           setRecentActivities(Array.isArray(recentData) ? recentData : []);
         }
       } catch (err: any) {
@@ -127,16 +131,11 @@ export default function Dashboard() {
   };
 
   const getStatusCount = (statusName: string) => {
-    const found = bookingStatusStats.find((item) => {
-      const status = item.bookingStatus || item.status || '';
-      return status.toUpperCase() === statusName.toUpperCase();
-    });
-
-    return Number(found?.count ?? found?._count ?? 0);
+    return Number(bookingStatusStats[statusName.toUpperCase()] ?? 0);
   };
 
-  const totalOperationalBookings = bookingStatusStats.reduce((total, item) => {
-    return total + Number(item.count ?? item._count ?? 0);
+  const totalOperationalBookings = Object.values(bookingStatusStats).reduce((total, count) => {
+    return total + Number(count);
   }, 0);
 
   if (loading) {
@@ -201,10 +200,10 @@ export default function Dashboard() {
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <Hotel size={12} /> {stats?.hotelBookingsCount || 0}
+                    <Hotel size={12} /> {stats?.bookingsByType?.HOTEL || 0}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <PlaneTakeoff size={12} /> {stats?.flightBookingsCount || 0}
+                    <PlaneTakeoff size={12} /> {stats?.bookingsByType?.FLIGHT || 0}
                   </span>
                 </div>
               </div>
@@ -277,7 +276,7 @@ export default function Dashboard() {
                 ) : (
                   topCustomers.map((cust) => (
                     <div
-                      key={cust.customerId}
+                      key={cust.customer.id}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -288,7 +287,7 @@ export default function Dashboard() {
                     >
                       <div>
                         <h4 style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-                          {cust.firstName} {cust.lastName}
+                          {cust.customer.firstName} {cust.customer.lastName}
                         </h4>
                         <p
                           style={{
@@ -296,7 +295,7 @@ export default function Dashboard() {
                             color: 'var(--text-secondary)',
                           }}
                         >
-                          {cust.bookingCount} bookings recorded
+                          {cust.totalBookings} bookings recorded
                         </p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
@@ -307,7 +306,7 @@ export default function Dashboard() {
                             color: 'var(--secondary)',
                           }}
                         >
-                          {formatCurrency(cust.totalSpent)}
+                          {formatCurrency(cust.totalValue)}
                         </p>
                       </div>
                     </div>
@@ -365,7 +364,7 @@ export default function Dashboard() {
             <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
               You are using an operational account. Financial information such as
               revenue, unpaid balance, and top customers by spending is reserved
-              for the chef d’agence.
+              for the chef d'agence.
             </p>
           </div>
 

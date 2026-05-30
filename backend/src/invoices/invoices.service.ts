@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -34,9 +33,19 @@ export class InvoicesService {
       throw new NotFoundException('Booking not found');
     }
 
-    // 2. Generate sequential invoice number: INV-{YEAR}-{SEQUENTIAL_PADDED_4}
+    // 2. Generate sequential invoice number: {PREFIX}-{YEAR}-{SEQUENTIAL_PADDED_4}
+    const [agencyNameSetting, invoicePrefixSetting, currencySetting] =
+      await Promise.all([
+        this.prisma.setting.findUnique({ where: { key: 'agency_name' } }),
+        this.prisma.setting.findUnique({ where: { key: 'invoice_prefix' } }),
+        this.prisma.setting.findUnique({ where: { key: 'currency' } }),
+      ]);
+
+    const invoicePrefix =
+      (invoicePrefixSetting?.value || 'INV').replace(/[^A-Za-z0-9_-]/g, '') ||
+      'INV';
     const currentYear = new Date().getFullYear();
-    const yearPrefix = `INV-${currentYear}-`;
+    const yearPrefix = `${invoicePrefix}-${currentYear}-`;
 
     const lastInvoice = await this.prisma.invoice.findFirst({
       where: {
@@ -56,11 +65,9 @@ export class InvoicesService {
 
     const invoiceNumber = `${yearPrefix}${String(sequenceNumber).padStart(4, '0')}`;
 
-    // 3. Fetch agency name from settings
-    const agencyNameSetting = await this.prisma.setting.findUnique({
-      where: { key: 'agency_name' },
-    });
+    // 3. Use agency settings in the generated document
     const agencyName = agencyNameSetting?.value || 'Travel Agency';
+    const currency = currencySetting?.value || 'TND';
 
     // 4. Create the PDF
     const invoicesDir = path.resolve('./invoices');
@@ -74,6 +81,7 @@ export class InvoicesService {
     try {
       await this.generatePdf(pdfPath, {
         agencyName,
+        currency,
         invoiceNumber,
         issueDate: new Date(),
         customer: booking.customer,
@@ -150,7 +158,9 @@ export class InvoicesService {
         where.issueDate.gte = new Date(filters.dateFrom);
       }
       if (filters.dateTo) {
-        where.issueDate.lte = new Date(filters.dateTo);
+        const endDate = new Date(filters.dateTo);
+        endDate.setHours(23, 59, 59, 999);
+        where.issueDate.lte = endDate;
       }
     }
 
@@ -244,8 +254,8 @@ export class InvoicesService {
   // Private helpers
   // ───────────────────────────────────────────────────
 
-  private formatCurrency(value: number | any): string {
-    return `${Number(value).toFixed(3)} TND`;
+  private formatCurrency(value: unknown, currency = 'TND'): string {
+    return `${Number(value).toFixed(3)} ${currency}`;
   }
 
   private formatDate(date: Date): string {
@@ -260,6 +270,7 @@ export class InvoicesService {
     filePath: string,
     data: {
       agencyName: string;
+      currency: string;
       invoiceNumber: string;
       issueDate: Date;
       customer: any;
@@ -423,7 +434,7 @@ export class InvoicesService {
             doc.text(this.formatDate(payment.paymentDate), col1, rowY);
             doc.text(payment.paymentMethod, col2, rowY);
             doc.text(payment.referenceNumber || '-', col3, rowY);
-            doc.text(this.formatCurrency(payment.amount), col4, rowY);
+            doc.text(this.formatCurrency(payment.amount, data.currency), col4, rowY);
             rowY += 16;
           }
 
@@ -445,14 +456,14 @@ export class InvoicesService {
         doc.fontSize(11).font('Helvetica');
 
         doc.text('Total Amount:', 70, summaryY + 12, { continued: true, width: 200 });
-        doc.font('Helvetica-Bold').text(`  ${this.formatCurrency(data.booking.totalPrice)}`, { align: 'left' });
+        doc.font('Helvetica-Bold').text(`  ${this.formatCurrency(data.booking.totalPrice, data.currency)}`, { align: 'left' });
 
         doc.font('Helvetica').text('Paid Amount:', 70, summaryY + 30, { continued: true, width: 200 });
-        doc.font('Helvetica-Bold').fillColor('#2e7d32').text(`  ${this.formatCurrency(data.booking.paidAmount)}`, { align: 'left' });
+        doc.font('Helvetica-Bold').fillColor('#2e7d32').text(`  ${this.formatCurrency(data.booking.paidAmount, data.currency)}`, { align: 'left' });
 
         doc.font('Helvetica').fillColor('#000000').text('Remaining Amount:', 70, summaryY + 48, { continued: true, width: 200 });
         const remainingColor = Number(data.booking.remainingAmount) > 0 ? '#c62828' : '#2e7d32';
-        doc.font('Helvetica-Bold').fillColor(remainingColor).text(`  ${this.formatCurrency(data.booking.remainingAmount)}`, { align: 'left' });
+        doc.font('Helvetica-Bold').fillColor(remainingColor).text(`  ${this.formatCurrency(data.booking.remainingAmount, data.currency)}`, { align: 'left' });
 
         doc.fillColor('#000000');
         doc.y = summaryY + 85;

@@ -10,8 +10,7 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
-const ADMIN_REGISTRATION_CODE = 'RIADH-CHEF-2026';
+import { getAdminRegistrationCode } from './auth.config';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +35,8 @@ export class AuthService {
     let finalRole: UserRole;
 
     if (role === 'ADMIN') {
-      if (adminCode !== ADMIN_REGISTRATION_CODE) {
+      const adminRegistrationCode = getAdminRegistrationCode();
+      if (!adminRegistrationCode || adminCode !== adminRegistrationCode) {
         throw new UnauthorizedException('Invalid chef registration code');
       }
 

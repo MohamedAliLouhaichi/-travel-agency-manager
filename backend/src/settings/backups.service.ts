@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { execSync } from 'child_process';
@@ -19,7 +23,9 @@ export class BackupsService {
     }
   }
 
-  async createBackup(userId: string): Promise<{ filePath: string; fileName: string }> {
+  async createBackup(
+    userId: string,
+  ): Promise<{ filePath: string; fileName: string }> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = `backup-${timestamp}.sql`;
     const filePath = path.join(this.backupsDir, fileName);
@@ -30,7 +36,8 @@ export class BackupsService {
         stdio: 'pipe',
       });
     } catch (error) {
-      throw new Error(`Failed to create backup: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to create backup: ${message}`);
     }
 
     await this.prisma.activityLog.create({
@@ -46,7 +53,7 @@ export class BackupsService {
     return { filePath, fileName };
   }
 
-  async listBackups(): Promise<Array<{ name: string; size: number; date: Date }>> {
+  listBackups(): Array<{ name: string; size: number; date: Date }> {
     if (!fs.existsSync(this.backupsDir)) {
       return [];
     }
@@ -66,8 +73,11 @@ export class BackupsService {
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
-  async deleteBackup(fileName: string, userId: string): Promise<{ message: string }> {
-    const filePath = path.join(this.backupsDir, fileName);
+  async deleteBackup(
+    fileName: string,
+    userId: string,
+  ): Promise<{ message: string }> {
+    const filePath = this.resolveBackupPath(fileName);
 
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException(`Backup file "${fileName}" not found`);
@@ -89,12 +99,23 @@ export class BackupsService {
   }
 
   getBackupPath(fileName: string): string {
-    const filePath = path.join(this.backupsDir, fileName);
+    const filePath = this.resolveBackupPath(fileName);
 
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException(`Backup file "${fileName}" not found`);
     }
 
     return filePath;
+  }
+
+  private resolveBackupPath(fileName: string): string {
+    if (
+      path.basename(fileName) !== fileName ||
+      !/^backup-[A-Za-z0-9._-]+\.sql$/.test(fileName)
+    ) {
+      throw new BadRequestException('Invalid backup file name');
+    }
+
+    return path.join(this.backupsDir, fileName);
   }
 }

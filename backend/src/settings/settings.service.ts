@@ -80,6 +80,7 @@ export class SettingsService {
       'agency_phone',
       'agency_email',
       'currency',
+      'invoice_prefix',
       'tax_rate',
     ];
 
@@ -98,6 +99,7 @@ export class SettingsService {
       agencyPhone: map['agency_phone'] || '',
       agencyEmail: map['agency_email'] || '',
       currency: map['currency'] || 'USD',
+      invoicePrefix: map['invoice_prefix'] || 'INV',
       taxRate: map['tax_rate'] || '0',
     };
   }

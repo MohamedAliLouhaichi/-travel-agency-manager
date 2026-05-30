@@ -10,6 +10,7 @@ import {
   Upload,
   Settings as SettingsIcon,
   LogOut,
+  CircleCheck,
 } from 'lucide-react';
 
 import Login from './pages/Login';
@@ -27,13 +28,19 @@ const NAV_ITEMS = [
   { to: '/bookings', icon: Compass, label: 'Bookings' },
   { to: '/invoices', icon: FileText, label: 'Invoices' },
   { to: '/imports', icon: Upload, label: 'Imports' },
-  { to: '/activity-logs', icon: Activity, label: 'Activity Logs' },
+  { to: '/activity-logs', icon: Activity, label: 'Activity Logs', adminOnly: true },
   { to: '/settings', icon: SettingsIcon, label: 'Settings' },
 ];
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const userInitials = (user?.fullName || 'Agency User')
+    .split(' ')
+    .map((part: string) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const handleLogout = () => {
     logout();
@@ -43,10 +50,21 @@ function AuthenticatedLayout() {
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <div className="sidebar-logo">GLOBETROTTER</div>
+        <div className="sidebar-brand">
+          <img
+            className="sidebar-brand-logo"
+            src="/branding/riadh-voyages-logo.png"
+            alt="Riadh Voyages"
+          />
+          <div>
+            <div className="sidebar-logo">RIADH</div>
+            <div className="sidebar-brand-subtitle">VOYAGES</div>
+          </div>
+        </div>
 
+        <p className="sidebar-section-label">Workspace</p>
         <ul className="sidebar-menu">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === 'ADMIN').map((item) => (
             <li key={item.to}>
               <NavLink
                 to={item.to}
@@ -63,27 +81,46 @@ function AuthenticatedLayout() {
         </ul>
 
         <div className="sidebar-user">
-          <div className="user-info">
-            <span className="user-name">{user?.fullName || 'User'}</span>
-            <span className="user-role">{user?.role || 'Agent'}</span>
+          <div className="user-card">
+            <span className="user-avatar">{userInitials}</span>
+            <div className="user-info">
+              <span className="user-name">{user?.fullName || 'User'}</span>
+              <span className="user-role">{user?.role || 'Agent'}</span>
+            </div>
           </div>
-          <button className="btn btn-outline" onClick={handleLogout} style={{ width: '100%' }}>
+          <button className="btn sidebar-logout" onClick={handleLogout}>
             <LogOut size={16} /> Sign Out
           </button>
         </div>
       </aside>
 
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/bookings" element={<Bookings />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/imports" element={<ImportsPage />} />
-          <Route path="/activity-logs" element={<ActivityLogs />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <header className="app-topbar">
+          <div>
+            <p className="topbar-eyebrow">Agency workspace</p>
+            <p className="topbar-title">Travel operations center</p>
+          </div>
+          <div className="topbar-status">
+            <CircleCheck size={16} />
+            <span>Live workspace</span>
+          </div>
+        </header>
+
+        <div className="page-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/imports" element={<ImportsPage />} />
+            <Route
+              path="/activity-logs"
+              element={user?.role === 'ADMIN' ? <ActivityLogs /> : <Navigate to="/" replace />}
+            />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );
