@@ -3,8 +3,10 @@ import { fetchWithAuth } from '../utils/api';
 import { 
   Plus, 
   Search, 
+  Edit,
   Eye, 
   X,
+  Trash2,
   AlertCircle,
   Hotel,
   PlaneTakeoff,
@@ -49,6 +51,8 @@ export default function Bookings() {
   const [customers, setCustomers] = useState<CustomerList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
+  const [bookingBulkAction, setBookingBulkAction] = useState('');
 
   // Filters
   const [search, setSearch] = useState('');
@@ -58,6 +62,7 @@ export default function Bookings() {
 
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
@@ -121,8 +126,11 @@ export default function Bookings() {
 
       const endpoint = query.length > 0 ? `/bookings?${query.join('&')}` : '/bookings';
       const res = await fetchWithAuth(endpoint);
-      const data = await res.json();
+      const data: Booking[] = await res.json();
       setBookings(data);
+      setSelectedBookingIds((selectedIds) =>
+        selectedIds.filter((id) => data.some((booking) => booking.id === id)),
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to load bookings');
     } finally {
@@ -140,7 +148,45 @@ export default function Bookings() {
     }
   }
 
+  const toDateInput = (value?: string) => {
+    if (!value) return '';
+    return new Date(value).toISOString().substring(0, 10);
+  };
+
+  const toDatetimeInput = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().substring(0, 16);
+  };
+
+  const allVisibleBookingsSelected =
+    bookings.length > 0 &&
+    bookings.every((booking) => selectedBookingIds.includes(booking.id));
+
+  const handleToggleBookingSelection = (id: string) => {
+    setSelectedBookingIds((currentIds) =>
+      currentIds.includes(id)
+        ? currentIds.filter((selectedId) => selectedId !== id)
+        : [...currentIds, id],
+    );
+  };
+
+  const handleToggleAllBookings = () => {
+    const visibleIds = bookings.map((booking) => booking.id);
+
+    setSelectedBookingIds((currentIds) => {
+      if (visibleIds.every((id) => currentIds.includes(id))) {
+        return currentIds.filter((id) => !visibleIds.includes(id));
+      }
+
+      return Array.from(new Set([...currentIds, ...visibleIds]));
+    });
+  };
+
   const handleOpenCreate = () => {
+    setEditingBookingId(null);
+    setActiveFormType('HOTEL');
     // Reset Form fields
     setCustomerId(customers[0]?.id || '');
     setDestination('');
@@ -178,6 +224,97 @@ export default function Bookings() {
     setIsCreateOpen(true);
   };
 
+  const handleOpenEditBooking = (booking: Booking) => {
+    setEditingBookingId(booking.id);
+    setActiveFormType(booking.bookingType);
+    setCustomerId(booking.customerId);
+    setDestination(booking.destination);
+    setStartDate(toDateInput(booking.startDate));
+    setEndDate(toDateInput(booking.endDate));
+    setTotalPrice(String(Number(booking.totalPrice)));
+    setNotes(booking.notes || '');
+
+    setHotelName(booking.hotelBooking?.hotelName || '');
+    setHotelCity(booking.hotelBooking?.city || '');
+    setHotelCountry(booking.hotelBooking?.country || '');
+    setCheckInDate(toDateInput(booking.hotelBooking?.checkInDate));
+    setCheckOutDate(toDateInput(booking.hotelBooking?.checkOutDate));
+    setNumberOfNights(booking.hotelBooking?.numberOfNights || 1);
+    setRoomType(booking.hotelBooking?.roomType || 'Standard');
+    setNumberOfRooms(booking.hotelBooking?.numberOfRooms || 1);
+    setNumberOfGuests(booking.hotelBooking?.numberOfGuests || 1);
+    setBoardType(booking.hotelBooking?.boardType || 'Room Only');
+    setConfirmationNumber(booking.hotelBooking?.confirmationNumber || '');
+
+    setAirline(booking.flightBooking?.airline || '');
+    setFlightNumber(booking.flightBooking?.flightNumber || '');
+    setDepartureAirport(booking.flightBooking?.departureAirport || '');
+    setArrivalAirport(booking.flightBooking?.arrivalAirport || '');
+    setDepartureCity(booking.flightBooking?.departureCity || '');
+    setArrivalCity(booking.flightBooking?.arrivalCity || '');
+    setDepartureDatetime(toDatetimeInput(booking.flightBooking?.departureDatetime));
+    setArrivalDatetime(toDatetimeInput(booking.flightBooking?.arrivalDatetime));
+    setPassengerCount(booking.flightBooking?.passengerCount || 1);
+    setTicketNumber(booking.flightBooking?.ticketNumber || '');
+    setReservationReference(booking.flightBooking?.reservationReference || '');
+
+    setIsDetailOpen(false);
+    setIsCreateOpen(true);
+  };
+
+  const handleBookingBulkAction = async () => {
+    if (!bookingBulkAction) return;
+
+    if (selectedBookingIds.length === 0) {
+      alert('Select at least one booking first.');
+      return;
+    }
+
+    if (bookingBulkAction === 'modify') {
+      if (selectedBookingIds.length !== 1) {
+        alert('Select exactly one booking to modify.');
+        return;
+      }
+
+      const booking = bookings.find((item) => item.id === selectedBookingIds[0]);
+      if (!booking) {
+        alert('Selected booking is no longer visible.');
+        return;
+      }
+
+      handleOpenEditBooking(booking);
+      setBookingBulkAction('');
+      return;
+    }
+
+    if (bookingBulkAction === 'delete') {
+      const confirmed = window.confirm(
+        `Delete ${selectedBookingIds.length} selected booking record(s)? Related payments will be deleted too.`,
+      );
+
+      if (!confirmed) return;
+
+      try {
+        setError('');
+        const res = await fetchWithAuth('/bookings/bulk', {
+          method: 'DELETE',
+          body: JSON.stringify({ ids: selectedBookingIds }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          throw new Error(errData?.message || 'Failed to delete selected bookings');
+        }
+
+        setSelectedBookingIds([]);
+        setBookingBulkAction('');
+        loadBookings();
+      } catch (err: any) {
+        setError(err.message || 'Failed to delete selected bookings');
+      }
+    }
+  };
+
   const handleViewDetail = async (id: string) => {
     try {
       const res = await fetchWithAuth(`/bookings/${id}`);
@@ -197,9 +334,9 @@ export default function Bookings() {
     let payload = {};
 
     if (activeFormType === 'HOTEL') {
-      endpoint = '/bookings/hotel';
+      endpoint = editingBookingId ? `/bookings/${editingBookingId}/hotel` : '/bookings/hotel';
       payload = {
-        customerId,
+        ...(editingBookingId ? {} : { customerId }),
         destination,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
@@ -218,9 +355,9 @@ export default function Bookings() {
         confirmationNumber: confirmationNumber || null
       };
     } else {
-      endpoint = '/bookings/flight';
+      endpoint = editingBookingId ? `/bookings/${editingBookingId}/flight` : '/bookings/flight';
       payload = {
-        customerId,
+        ...(editingBookingId ? {} : { customerId }),
         destination,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
@@ -242,19 +379,20 @@ export default function Bookings() {
 
     try {
       const res = await fetchWithAuth(endpoint, {
-        method: 'POST',
+        method: editingBookingId ? 'PATCH' : 'POST',
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || 'Failed to create booking');
+        throw new Error(errData.message || 'Failed to save booking');
       }
 
       setIsCreateOpen(false);
+      setEditingBookingId(null);
       loadBookings();
     } catch (err: any) {
-      setError(err.message || 'Creation failed');
+      setError(err.message || 'Save failed');
     }
   };
 
@@ -428,6 +566,40 @@ export default function Bookings() {
 
       {/* Booking Records Grid */}
       <div className="glass-panel" style={{ padding: '20px' }}>
+        <div className="bulk-toolbar">
+          <span className="bulk-toolbar-count">
+            {selectedBookingIds.length} selected
+          </span>
+          <div className="bulk-toolbar-actions">
+            <select
+              className="form-select"
+              value={bookingBulkAction}
+              onChange={(e) => setBookingBulkAction(e.target.value)}
+              style={{ minWidth: 150 }}
+            >
+              <option value="">Action</option>
+              <option value="modify">Modify</option>
+              <option value="delete">Delete</option>
+            </select>
+            <button
+              className={bookingBulkAction === 'delete' ? 'btn btn-danger' : 'btn btn-outline'}
+              type="button"
+              onClick={handleBookingBulkAction}
+              disabled={!bookingBulkAction || selectedBookingIds.length === 0}
+            >
+              {bookingBulkAction === 'delete' ? <Trash2 size={16} /> : <Edit size={16} />}
+              Apply
+            </button>
+          </div>
+        </div>
+
+        {error && !isCreateOpen && (
+          <div className="alert alert-danger">
+            <AlertCircle size={18} />
+            {error}
+          </div>
+        )}
+
         {loading ? (
           <div className="center-flex">
             <div className="loading-spinner" />
@@ -442,6 +614,14 @@ export default function Bookings() {
             <table className="custom-table">
               <thead>
                 <tr>
+                  <th className="selection-col">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all visible bookings"
+                      checked={allVisibleBookingsSelected}
+                      onChange={handleToggleAllBookings}
+                    />
+                  </th>
                   <th>Type</th>
                   <th>Customer</th>
                   <th>Destination</th>
@@ -454,7 +634,18 @@ export default function Bookings() {
               </thead>
               <tbody>
                 {bookings.map((b) => (
-                  <tr key={b.id}>
+                  <tr
+                    key={b.id}
+                    className={selectedBookingIds.includes(b.id) ? 'row-selected' : ''}
+                  >
+                    <td className="selection-col">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select booking for ${b.customer.firstName} ${b.customer.lastName}`}
+                        checked={selectedBookingIds.includes(b.id)}
+                        onChange={() => handleToggleBookingSelection(b.id)}
+                      />
+                    </td>
                     <td>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
                         {b.bookingType === 'HOTEL' ? <Hotel size={14} color="var(--primary)" /> : <PlaneTakeoff size={14} color="var(--secondary)" />}
@@ -481,13 +672,22 @@ export default function Bookings() {
                       </span>
                     </td>
                     <td>
-                      <button 
-                        className="btn btn-outline" 
-                        style={{ padding: '6px 10px' }}
-                        onClick={() => handleViewDetail(b.id)}
-                      >
-                        <Eye size={14} /> Open
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="btn btn-outline"
+                          style={{ padding: '6px 10px' }}
+                          onClick={() => handleViewDetail(b.id)}
+                        >
+                          <Eye size={14} /> Open
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          style={{ padding: '6px 10px' }}
+                          onClick={() => handleOpenEditBooking(b)}
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -502,8 +702,16 @@ export default function Bookings() {
         <div className="modal-overlay">
           <div className="modal-content glass-panel" style={{ maxWidth: '700px' }}>
             <div className="modal-header">
-              <h3 className="modal-title">Book New Client Service</h3>
-              <button className="modal-close" onClick={() => setIsCreateOpen(false)}>
+              <h3 className="modal-title">
+                {editingBookingId ? 'Modify Client Service' : 'Book New Client Service'}
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  setEditingBookingId(null);
+                }}
+              >
                 <X size={20} />
               </button>
             </div>
@@ -515,6 +723,7 @@ export default function Bookings() {
                 type="button" 
                 className={`tab-btn ${activeFormType === 'HOTEL' ? 'active' : ''}`}
                 onClick={() => setActiveFormType('HOTEL')}
+                disabled={Boolean(editingBookingId)}
               >
                 <Hotel size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Hotel Reservation
               </button>
@@ -522,6 +731,7 @@ export default function Bookings() {
                 type="button" 
                 className={`tab-btn ${activeFormType === 'FLIGHT' ? 'active' : ''}`}
                 onClick={() => setActiveFormType('FLIGHT')}
+                disabled={Boolean(editingBookingId)}
               >
                 <PlaneTakeoff size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Flight Booking
               </button>
@@ -537,6 +747,7 @@ export default function Bookings() {
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
                   required
+                  disabled={Boolean(editingBookingId)}
                 >
                   <option value="" disabled>-- Select Profile --</option>
                   {customers.map((c) => (
@@ -912,11 +1123,18 @@ export default function Bookings() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setIsCreateOpen(false)}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setIsCreateOpen(false);
+                    setEditingBookingId(null);
+                  }}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  Save Reservation
+                  {editingBookingId ? 'Save Changes' : 'Save Reservation'}
                 </button>
               </div>
             </form>

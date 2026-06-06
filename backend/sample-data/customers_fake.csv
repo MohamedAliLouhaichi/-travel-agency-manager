@@ -1,0 +1,31 @@
+firstName,lastName,phone,email,address,nationality,passportNumber,passportExpiry,dateOfBirth,notes
+Amine,Ben Youssef,+21620111222,amine.benyoussef@example.test,12 Avenue Habib Bourguiba Tunis,Tunisian,TN742109,2031-04-18,1988-02-14,Frequent business traveler
+Leila,Trabelsi,+21622123456,leila.trabelsi@example.test,45 Rue de Carthage Tunis,Tunisian,TN583920,2030-11-02,1992-07-09,Prefers aisle seats
+Sami,Haddad,+21625333444,sami.haddad@example.test,8 Rue Ibn Khaldoun Sfax,Tunisian,TN902814,2029-08-22,1985-12-03,
+Noura,Jaziri,+21627666555,noura.jaziri@example.test,21 Avenue Farhat Hached Sousse,Tunisian,TN331507,2032-01-10,1995-05-26,Honeymoon package interest
+Karim,Mansouri,+21629555777,karim.mansouri@example.test,6 Rue des Jasmins Ariana,Tunisian,TN650421,2030-06-30,1979-09-17,Needs invoice under company name
+Ines,Bouaziz,+21631111999,ines.bouaziz@example.test,33 Avenue Mohamed V Tunis,Tunisian,TN884712,2033-03-11,1990-11-21,
+Yassine,Mejri,+21636543210,yassine.mejri@example.test,14 Rue de la Republique Bizerte,Tunisian,TN476002,2028-12-05,1983-04-02,Prefers direct flights
+Meriem,Saidi,+21640222333,meriem.saidi@example.test,77 Avenue Hedi Chaker Nabeul,Tunisian,TN210945,2031-09-14,1998-01-30,Student discount requested
+Omar,Kallel,+21644555111,omar.kallel@example.test,19 Rue de Marseille Tunis,Tunisian,TN793014,2030-02-27,1986-06-12,
+Salma,Ayari,+21650123412,salma.ayari@example.test,4 Rue des Palmiers Monastir,Tunisian,TN124589,2034-07-19,1993-10-05,Vegetarian meal requested
+Hedi,Zaidi,+21652222111,hedi.zaidi@example.test,28 Avenue de la Liberte Tunis,Tunisian,TN678240,2029-05-06,1975-03-29,
+Rania,Fersi,+21655111000,rania.fersi@example.test,9 Rue Hannibal La Marsa,Tunisian,TN905673,2031-12-24,1991-08-18,Family trip with children
+Moez,Cherif,+21658444555,moez.cherif@example.test,11 Rue de Kairouan Mahdia,Tunisian,TN341268,2032-10-01,1982-01-11,Prefers hotel near beach
+Amina,Laroussi,+21661111222,amina.laroussi@example.test,52 Avenue de Paris Tunis,Tunisian,TN560184,2028-09-15,1996-12-27,
+Fares,Belhadj,+21663222111,fares.belhadj@example.test,3 Rue Sidi Bou Said Tunis,Tunisian,TN118650,2030-04-04,1989-07-15,Requires wheelchair assistance
+Sarra,Abidi,+21666123456,sarra.abidi@example.test,16 Rue Ibn Rachik Sousse,Tunisian,TN812457,2033-02-08,1994-04-23,
+Anis,Dridi,+21670444888,anis.dridi@example.test,40 Rue du Port La Goulette,Tunisian,TN473991,2029-11-29,1981-09-01,Corporate client
+Yasmine,Guellouz,+21672111000,yasmine.guellouz@example.test,25 Avenue Bourguiba Hammamet,Tunisian,TN690225,2031-06-16,1997-03-08,
+Walid,Nasri,+21675333222,walid.nasri@example.test,18 Rue des Oliviers Gabes,Tunisian,TN229845,2028-03-20,1984-05-19,Prefers window seats
+Maha,Rezgui,+21678123456,maha.rezgui@example.test,7 Rue de Tozeur Djerba,Tunisian,TN930471,2034-01-31,1999-06-04,
+Adel,Toumi,+21690111122,adel.toumi@example.test,31 Rue de Tunis Kairouan,Tunisian,TN384760,2032-05-12,1978-11-16,Senior traveler
+Lina,Baccouche,+21691222333,lina.baccouche@example.test,20 Rue des Roses Ariana,Tunisian,TN671305,2030-08-03,1992-02-25,
+Mehdi,Chebbi,+21693444555,mehdi.chebbi@example.test,13 Avenue de France Tunis,Tunisian,TN209761,2029-01-07,1987-12-20,Flexible dates
+Hana,Ksouri,+21695555111,hana.ksouri@example.test,5 Rue El Manar Tunis,Tunisian,TN548122,2033-09-09,1995-09-13,
+Tarek,Marzouki,+21698123456,tarek.marzouki@example.test,2 Rue de Gafsa Sfax,Tunisian,TN760334,2031-10-28,1980-08-07,Needs airport transfer
+Asma,Romdhane,+212601112233,asma.romdhane@example.test,10 Avenue Mohammed V Casablanca,Moroccan,MA882140,2032-06-02,1990-01-22,
+Youssef,Bennani,+212622334455,youssef.bennani@example.test,22 Rue Zerktouni Rabat,Moroccan,MA451903,2031-03-17,1986-10-31,Prefers Arabic speaking guide
+Nadia,El Fassi,+212633445566,nadia.elfassi@example.test,15 Avenue Hassan II Marrakech,Moroccan,MA670218,2030-12-12,1994-06-28,
+Rachid,Idrissi,+212644556677,rachid.idrissi@example.test,6 Rue Al Massira Agadir,Moroccan,MA293871,2029-07-05,1982-04-14,Business class inquiry
+Mouna,Chraibi,+212655667788,mouna.chraibi@example.test,29 Boulevard Anfa Casablanca,Moroccan,MA719504,2034-04-23,1998-11-02,

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -146,5 +146,59 @@ export class CustomersService {
     });
 
     return updatedCustomer;
+  }
+
+  async deleteMany(ids: string[], currentUserId: string) {
+    const uniqueIds = [...new Set(ids)];
+
+    const customers = await this.prisma.customer.findMany({
+      where: { id: { in: uniqueIds } },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        _count: {
+          select: { bookings: true },
+        },
+      },
+    });
+
+    if (customers.length !== uniqueIds.length) {
+      throw new NotFoundException('One or more selected customers were not found');
+    }
+
+    const customersWithBookings = customers.filter(
+      (customer) => customer._count.bookings > 0,
+    );
+
+    if (customersWithBookings.length > 0) {
+      const names = customersWithBookings
+        .map((customer) => `${customer.firstName} ${customer.lastName}`)
+        .join(', ');
+
+      throw new BadRequestException(
+        `Cannot delete customers with existing bookings. Delete their bookings first: ${names}`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.customer.deleteMany({
+        where: { id: { in: uniqueIds } },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          userId: currentUserId,
+          action: 'DELETE_CUSTOMERS',
+          entityType: 'CUSTOMER',
+          description: `Deleted ${result.count} customer record(s)`,
+        },
+      });
+
+      return {
+        deletedCount: result.count,
+        requestedCount: uniqueIds.length,
+      };
+    });
   }
 }

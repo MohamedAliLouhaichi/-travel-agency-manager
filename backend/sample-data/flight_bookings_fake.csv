@@ -1,0 +1,16 @@
+customerEmail,destination,startDate,endDate,totalPrice,airline,flightNumber,departureAirport,arrivalAirport,departureCity,arrivalCity,departureDatetime,arrivalDatetime,ticketNumber,reservationReference,passengerCount,notes
+sami.haddad@example.test,Istanbul,2026-07-04,2026-07-11,1480.000,Turkish Airlines,TK664,TUN,IST,Tunis,Istanbul,2026-07-04T16:55:00,2026-07-04T20:45:00,TKT-260704-001,PNR7A4X,1,Direct flight requested
+yassine.mejri@example.test,Paris,2026-08-09,2026-08-16,1895.500,Transavia,TO8337,TUN,ORY,Tunis,Paris,2026-08-09T09:20:00,2026-08-09T12:50:00,TKT-260809-002,PNR5Q2B,1,
+salma.ayari@example.test,Rome,2026-09-01,2026-09-08,1220.000,Tunisair,TU752,TUN,FCO,Tunis,Rome,2026-09-01T10:30:00,2026-09-01T12:00:00,TKT-260901-003,PNR9L8C,1,Vegetarian meal
+hedi.zaidi@example.test,Dubai,2026-10-12,2026-10-19,2850.000,Emirates,EK748,TUN,DXB,Tunis,Dubai,2026-10-12T13:55:00,2026-10-12T22:30:00,TKT-261012-004,PNR2D5E,1,
+amina.laroussi@example.test,Doha,2026-11-03,2026-11-09,2635.000,Qatar Airways,QR1400,TUN,DOH,Tunis,Doha,2026-11-03T16:00:00,2026-11-03T23:15:00,TKT-261103-005,PNR4H8K,1,
+sarra.abidi@example.test,Casablanca,2026-07-27,2026-08-02,940.000,Royal Air Maroc,AT571,TUN,CMN,Tunis,Casablanca,2026-07-27T11:50:00,2026-07-27T14:40:00,TKT-260727-006,PNR1M3N,1,
+maha.rezgui@example.test,Cairo,2026-12-01,2026-12-07,1375.000,EgyptAir,MS844,TUN,CAI,Tunis,Cairo,2026-12-01T11:35:00,2026-12-01T15:25:00,TKT-261201-007,PNR6R2S,1,
+adel.toumi@example.test,Jeddah,2027-02-14,2027-02-24,3340.000,Saudia,SV366,TUN,JED,Tunis,Jeddah,2027-02-14T15:00:00,2027-02-14T21:45:00,TKT-270214-008,PNR8T4U,2,Senior traveler assistance
+lina.baccouche@example.test,Barcelona,2026-08-20,2026-08-27,1165.250,Vueling,VY2691,TUN,BCN,Tunis,Barcelona,2026-08-20T07:40:00,2026-08-20T10:20:00,TKT-260820-009,PNR3V7W,1,
+mehdi.chebbi@example.test,Lisbon,2026-09-13,2026-09-20,1780.000,TAP Air Portugal,TP1533,TUN,LIS,Tunis,Lisbon,2026-09-13T12:10:00,2026-09-13T15:05:00,TKT-260913-010,PNR0X6Y,1,Flexible return date
+asma.romdhane@example.test,Tunis,2026-07-15,2026-07-22,875.000,Royal Air Maroc,AT570,CMN,TUN,Casablanca,Tunis,2026-07-15T08:25:00,2026-07-15T11:05:00,TKT-260715-011,PNR2Z9A,1,
+youssef.bennani@example.test,Istanbul,2026-10-02,2026-10-09,1560.000,Turkish Airlines,TK618,CMN,IST,Casablanca,Istanbul,2026-10-02T16:45:00,2026-10-02T23:30:00,TKT-261002-012,PNR5B1D,1,Arabic speaking guide requested
+nadia.elfassi@example.test,Paris,2026-09-18,2026-09-26,1725.000,Air France,AF1277,RAK,CDG,Marrakech,Paris,2026-09-18T10:15:00,2026-09-18T14:35:00,TKT-260918-013,PNR6E4F,1,
+rachid.idrissi@example.test,London,2026-11-04,2026-11-11,2460.000,British Airways,BA669,CMN,LHR,Casablanca,London,2026-11-04T13:20:00,2026-11-04T16:35:00,TKT-261104-014,PNR7G3H,1,Business class inquiry
+mouna.chraibi@example.test,Dubai,2027-01-09,2027-01-19,2950.000,Emirates,EK752,CMN,DXB,Casablanca,Dubai,2027-01-09T15:05:00,2027-01-10T02:15:00,TKT-270109-015,PNR1J8L,1,

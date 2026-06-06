@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -17,6 +18,7 @@ import { CreateFlightBookingDto } from './dto/create-flight-booking.dto';
 import { UpdateHotelBookingDto } from './dto/update-hotel-booking.dto';
 import { UpdateFlightBookingDto } from './dto/update-flight-booking.dto';
 import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
+import { BulkDeleteDto } from '../common/dto/bulk-delete.dto';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
 
 @Controller('bookings')
@@ -90,6 +92,14 @@ export class BookingsController {
     @GetUser() currentUser: any,
   ) {
     return this.bookingsService.updateBookingStatus(id, dto.status, currentUser.id);
+  }
+
+  @Delete('bulk')
+  deleteBookings(
+    @Body() bulkDeleteDto: BulkDeleteDto,
+    @GetUser() currentUser: any,
+  ) {
+    return this.bookingsService.deleteMany(bulkDeleteDto.ids, currentUser.id);
   }
 
   @Get(':bookingId/payments')

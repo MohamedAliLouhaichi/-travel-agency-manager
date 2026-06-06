@@ -6,6 +6,7 @@ import {
   Edit, 
   Eye, 
   X,
+  Trash2,
   AlertCircle,
   FileText,
   Calendar,
@@ -33,6 +34,8 @@ export default function Customers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+  const [customerBulkAction, setCustomerBulkAction] = useState('');
 
   // Modal forms states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,14 +65,94 @@ export default function Customers() {
       setLoading(true);
       const endpoint = search ? `/customers?search=${encodeURIComponent(search)}` : '/customers';
       const res = await fetchWithAuth(endpoint);
-      const data = await res.json();
+      const data: Customer[] = await res.json();
       setCustomers(data);
+      setSelectedCustomerIds((selectedIds) =>
+        selectedIds.filter((id) => data.some((customer) => customer.id === id)),
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to load customers');
     } finally {
       setLoading(false);
     }
   }
+
+  const allVisibleCustomersSelected =
+    customers.length > 0 &&
+    customers.every((customer) => selectedCustomerIds.includes(customer.id));
+
+  const handleToggleCustomerSelection = (id: string) => {
+    setSelectedCustomerIds((currentIds) =>
+      currentIds.includes(id)
+        ? currentIds.filter((selectedId) => selectedId !== id)
+        : [...currentIds, id],
+    );
+  };
+
+  const handleToggleAllCustomers = () => {
+    const visibleIds = customers.map((customer) => customer.id);
+
+    setSelectedCustomerIds((currentIds) => {
+      if (visibleIds.every((id) => currentIds.includes(id))) {
+        return currentIds.filter((id) => !visibleIds.includes(id));
+      }
+
+      return Array.from(new Set([...currentIds, ...visibleIds]));
+    });
+  };
+
+  const handleCustomerBulkAction = async () => {
+    if (!customerBulkAction) return;
+
+    if (selectedCustomerIds.length === 0) {
+      alert('Select at least one customer first.');
+      return;
+    }
+
+    if (customerBulkAction === 'modify') {
+      if (selectedCustomerIds.length !== 1) {
+        alert('Select exactly one customer to modify.');
+        return;
+      }
+
+      const customer = customers.find((cust) => cust.id === selectedCustomerIds[0]);
+      if (!customer) {
+        alert('Selected customer is no longer visible.');
+        return;
+      }
+
+      handleOpenEdit(customer);
+      setCustomerBulkAction('');
+      return;
+    }
+
+    if (customerBulkAction === 'delete') {
+      const confirmed = window.confirm(
+        `Delete ${selectedCustomerIds.length} selected customer record(s)? Customers with bookings must have their bookings deleted first.`,
+      );
+
+      if (!confirmed) return;
+
+      try {
+        setError('');
+        const res = await fetchWithAuth('/customers/bulk', {
+          method: 'DELETE',
+          body: JSON.stringify({ ids: selectedCustomerIds }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          throw new Error(errData?.message || 'Failed to delete selected customers');
+        }
+
+        setSelectedCustomerIds([]);
+        setCustomerBulkAction('');
+        loadCustomers();
+      } catch (err: any) {
+        setError(err.message || 'Failed to delete selected customers');
+      }
+    }
+  };
 
   const handleOpenCreate = () => {
     setEditingId(null);
@@ -195,6 +278,33 @@ export default function Customers() {
 
       {/* Main Customers List */}
       <div className="glass-panel" style={{ padding: '20px' }}>
+        <div className="bulk-toolbar">
+          <span className="bulk-toolbar-count">
+            {selectedCustomerIds.length} selected
+          </span>
+          <div className="bulk-toolbar-actions">
+            <select
+              className="form-select"
+              value={customerBulkAction}
+              onChange={(e) => setCustomerBulkAction(e.target.value)}
+              style={{ minWidth: 150 }}
+            >
+              <option value="">Action</option>
+              <option value="modify">Modify</option>
+              <option value="delete">Delete</option>
+            </select>
+            <button
+              className={customerBulkAction === 'delete' ? 'btn btn-danger' : 'btn btn-outline'}
+              type="button"
+              onClick={handleCustomerBulkAction}
+              disabled={!customerBulkAction || selectedCustomerIds.length === 0}
+            >
+              {customerBulkAction === 'delete' ? <Trash2 size={16} /> : <Edit size={16} />}
+              Apply
+            </button>
+          </div>
+        </div>
+
         {loading ? (
           <div className="center-flex">
             <div className="loading-spinner" />
@@ -214,6 +324,14 @@ export default function Customers() {
             <table className="custom-table">
               <thead>
                 <tr>
+                  <th className="selection-col">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all visible customers"
+                      checked={allVisibleCustomersSelected}
+                      onChange={handleToggleAllCustomers}
+                    />
+                  </th>
                   <th>Name</th>
                   <th>Contact Info</th>
                   <th>Passport</th>
@@ -223,7 +341,18 @@ export default function Customers() {
               </thead>
               <tbody>
                 {customers.map((cust) => (
-                  <tr key={cust.id}>
+                  <tr
+                    key={cust.id}
+                    className={selectedCustomerIds.includes(cust.id) ? 'row-selected' : ''}
+                  >
+                    <td className="selection-col">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${cust.firstName} ${cust.lastName}`}
+                        checked={selectedCustomerIds.includes(cust.id)}
+                        onChange={() => handleToggleCustomerSelection(cust.id)}
+                      />
+                    </td>
                     <td style={{ fontWeight: 600 }}>{cust.firstName} {cust.lastName}</td>
                     <td>
                       <div style={{ fontSize: '0.85rem' }}>{cust.email}</div>

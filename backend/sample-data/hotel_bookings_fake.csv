@@ -1,0 +1,16 @@
+customerEmail,destination,startDate,endDate,totalPrice,hotelName,city,country,checkInDate,checkOutDate,numberOfNights,roomType,numberOfRooms,numberOfGuests,boardType,confirmationNumber,notes
+amine.benyoussef@example.test,Dubai,2026-07-12,2026-07-18,4280.000,Marina View Hotel,Dubai,United Arab Emirates,2026-07-12,2026-07-18,6,Deluxe King,1,1,Half Board,DXB-HOT-1001,Business stay near marina
+leila.trabelsi@example.test,Istanbul,2026-08-03,2026-08-10,3190.500,Bosphorus Garden,Istanbul,Turkey,2026-08-03,2026-08-10,7,Standard Double,1,2,Bed and Breakfast,IST-HOT-1002,
+noura.jaziri@example.test,Maldives,2026-09-14,2026-09-21,9850.000,Coral Lagoon Resort,Maafushi,Maldives,2026-09-14,2026-09-21,7,Water Villa,1,2,Full Board,MLE-HOT-1003,Honeymoon setup requested
+karim.mansouri@example.test,Paris,2026-10-05,2026-10-09,5120.750,Hotel Saint Germain,Paris,France,2026-10-05,2026-10-09,4,Executive Room,1,1,Bed and Breakfast,PAR-HOT-1004,Company invoice needed
+ines.bouaziz@example.test,Rome,2026-07-22,2026-07-27,2745.000,Colosseum Suites,Rome,Italy,2026-07-22,2026-07-27,5,Superior Twin,1,2,Room Only,ROM-HOT-1005,
+meriem.saidi@example.test,Barcelona,2026-08-18,2026-08-24,3380.250,Catalonia Central,Barcelona,Spain,2026-08-18,2026-08-24,6,Standard Twin,1,2,Bed and Breakfast,BCN-HOT-1006,Student group quote
+omar.kallel@example.test,Doha,2026-11-02,2026-11-06,4410.000,West Bay Pearl,Doha,Qatar,2026-11-02,2026-11-06,4,Deluxe Suite,1,1,Half Board,DOH-HOT-1007,
+rania.fersi@example.test,Antalya,2026-07-29,2026-08-05,5980.000,Sun Coast Resort,Antalya,Turkey,2026-07-29,2026-08-05,7,Family Room,2,4,All Inclusive,AYT-HOT-1008,Two children included
+moez.cherif@example.test,Hammamet,2026-06-20,2026-06-25,1620.000,Azur Palace,Hammamet,Tunisia,2026-06-20,2026-06-25,5,Sea View Double,1,2,Half Board,TUN-HOT-1009,Beachfront preference
+fares.belhadj@example.test,Cairo,2026-12-06,2026-12-12,3865.000,Nile Horizon,Cairo,Egypt,2026-12-06,2026-12-12,6,Accessible Room,1,1,Bed and Breakfast,CAI-HOT-1010,Accessible room required
+anis.dridi@example.test,London,2026-09-02,2026-09-07,6420.000,Kensington House,London,United Kingdom,2026-09-02,2026-09-07,5,Executive Double,1,1,Bed and Breakfast,LON-HOT-1011,Corporate rate
+yasmine.guellouz@example.test,Prague,2026-10-16,2026-10-21,2895.000,Old Town Residence,Prague,Czech Republic,2026-10-16,2026-10-21,5,Standard Double,1,2,Bed and Breakfast,PRG-HOT-1012,
+walid.nasri@example.test,Lisbon,2026-08-07,2026-08-12,3020.000,Tagus Boutique Hotel,Lisbon,Portugal,2026-08-07,2026-08-12,5,Superior Double,1,2,Room Only,LIS-HOT-1013,
+tarek.marzouki@example.test,Madrid,2026-11-18,2026-11-23,3550.000,Gran Via Central,Madrid,Spain,2026-11-18,2026-11-23,5,Deluxe Twin,1,2,Bed and Breakfast,MAD-HOT-1014,Airport transfer add-on
+mouna.chraibi@example.test,Bali,2027-01-10,2027-01-18,7680.000,Ubud Forest Villas,Ubud,Indonesia,2027-01-10,2027-01-18,8,Garden Villa,1,2,Half Board,DPS-HOT-1015,

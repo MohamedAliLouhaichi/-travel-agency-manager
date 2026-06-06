@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -13,6 +14,7 @@ import { GetUser } from '../auth/get-user.decorator';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { BulkDeleteDto } from '../common/dto/bulk-delete.dto';
 
 @Controller('customers')
 @UseGuards(JwtAuthGuard)
@@ -41,5 +43,13 @@ export class CustomersController {
     @GetUser() currentUser: any,
   ) {
     return this.customersService.update(id, updateCustomerDto, currentUser.id);
+  }
+
+  @Delete('bulk')
+  deleteCustomers(
+    @Body() bulkDeleteDto: BulkDeleteDto,
+    @GetUser() currentUser: any,
+  ) {
+    return this.customersService.deleteMany(bulkDeleteDto.ids, currentUser.id);
   }
 }

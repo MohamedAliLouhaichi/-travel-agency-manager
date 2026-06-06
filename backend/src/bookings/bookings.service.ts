@@ -414,4 +414,67 @@ export class BookingsService {
 
     return updatedBooking;
   }
+
+  async deleteMany(ids: string[], currentUserId: string) {
+    const uniqueIds = [...new Set(ids)];
+
+    const bookings = await this.prisma.booking.findMany({
+      where: { id: { in: uniqueIds } },
+      select: {
+        id: true,
+        bookingType: true,
+        destination: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        _count: {
+          select: { invoices: true },
+        },
+      },
+    });
+
+    if (bookings.length !== uniqueIds.length) {
+      throw new NotFoundException('One or more selected bookings were not found');
+    }
+
+    const bookingsWithInvoices = bookings.filter(
+      (booking) => booking._count.invoices > 0,
+    );
+
+    if (bookingsWithInvoices.length > 0) {
+      const labels = bookingsWithInvoices
+        .map(
+          (booking) =>
+            `${booking.bookingType} booking for ${booking.customer.firstName} ${booking.customer.lastName} to ${booking.destination}`,
+        )
+        .join(', ');
+
+      throw new BadRequestException(
+        `Cannot delete bookings with generated invoices: ${labels}`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.booking.deleteMany({
+        where: { id: { in: uniqueIds } },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          userId: currentUserId,
+          action: 'DELETE_BOOKINGS',
+          entityType: 'BOOKING',
+          description: `Deleted ${result.count} booking record(s)`,
+        },
+      });
+
+      return {
+        deletedCount: result.count,
+        requestedCount: uniqueIds.length,
+      };
+    });
+  }
 }
