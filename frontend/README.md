@@ -1,26 +1,40 @@
 # Riadh Voyages Frontend
 
-Desktop frontend for the Riadh Voyages agency manager. It uses React, Vite, and
-Tauri.
+React, Vite, and Tauri frontend for the Riadh Voyages desktop application.
+
+## Responsibilities
+
+- Login and protected navigation
+- Dashboard pages
+- Customer, booking, payment, invoice, import, settings, and activity-log screens
+- API integration with the NestJS backend
+- Desktop packaging through Tauri
 
 ## Setup
 
-```bash
+```powershell
 pnpm install
 Copy-Item .env.example .env.local
 pnpm dev
 ```
 
-The Vite development server runs on `http://localhost:1420`.
+The Vite development server runs on:
 
-## Environment
+```text
+http://localhost:1420
+```
 
-Set `VITE_API_BASE_URL` in `.env.local` when the frontend should use a local or
-custom backend. Without an override, the application uses the hosted API.
+## Environment Variables
+
+Set the backend URL in `.env.local` when needed:
+
+```text
+VITE_API_BASE_URL=http://localhost:3000
+```
 
 ## Verification
 
-```bash
+```powershell
 pnpm run build
 pnpm tauri build
 ```
